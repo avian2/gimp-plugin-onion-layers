@@ -33,10 +33,14 @@ def sanitize_name(name):
 	return re.sub(r'\d+', '', name)
 
 def show_all(img, act_layer):
+	img.undo_group_start()
+
 	for frame in get_frames(img):
 		frame.opacity = 100.
 		frame.visible = True
 		frame.apply()
+
+	img.undo_group_end()
 
 def onion(img, act_layer, inc, show_context):
 
@@ -78,8 +82,12 @@ def onion(img, act_layer, inc, show_context):
 		frames[i_next].opacity = NEXT_PREV_OPACITY
 		frames[i_next].visible = True
 
+	img.undo_group_start()
+
 	for frame in frames:
 		frame.apply()
+
+	img.undo_group_end()
 
 	# Use some heuristic to change the active layer as well.
 	if hasattr(frames[i].layer, 'layers'):
