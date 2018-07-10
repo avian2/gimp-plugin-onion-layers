@@ -62,6 +62,22 @@ def onion(img, act_layer, inc, show_context):
 	if i is None:
 		return
 
+	CTX_SIZE = 2
+	ctx = [ False ] * (CTX_SIZE*2 + 1)
+
+	if show_context:
+		# Find which neighboring frames are also currently visible -
+		# this is our desired context.
+		ctx = [ False ] * (CTX_SIZE*2 + 1)
+		for c in range(-CTX_SIZE, CTX_SIZE + 1):
+			# index into ctx
+			j = c + CTX_SIZE
+			# frame
+			k = (i + c) % N
+
+			if frames[k].layer.visible:
+				ctx[j] = True
+
 	# Select the next or previous frame.
 	i = (i + inc) % N
 
@@ -70,17 +86,18 @@ def onion(img, act_layer, inc, show_context):
 		frame.visible = False
 
 	if show_context:
-		i_prev = (i-1) % N
-		frames[i_prev].opacity = NEXT_PREV_OPACITY
-		frames[i_prev].visible = True
+		for c in range(-CTX_SIZE, CTX_SIZE + 1):
+			# index into ctx
+			j = c + CTX_SIZE
+			# frame
+			k = (i + c) % N
+
+			if ctx[j] and (k != i):
+				frames[k].opacity = NEXT_PREV_OPACITY
+				frames[k].visible = True
 
 	frames[i].opacity = 100.
 	frames[i].visible = True
-
-	if show_context:
-		i_next = (i+1) % N
-		frames[i_next].opacity = NEXT_PREV_OPACITY
-		frames[i_next].visible = True
 
 	img.undo_group_start()
 
