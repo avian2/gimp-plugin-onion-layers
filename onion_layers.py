@@ -4,6 +4,13 @@ import re
 
 NEXT_PREV_OPACITY = 25.
 
+DEFAULT_CONTEXTS = [
+	[ None, 100., None ],
+	[ NEXT_PREV_OPACITY, 100., NEXT_PREV_OPACITY ],
+	[ None, 100., NEXT_PREV_OPACITY ],
+	[ NEXT_PREV_OPACITY, 100., None ],
+]
+
 class Frame(object):
 	def __init__(self, layer):
 		self.layer = layer
@@ -42,7 +49,7 @@ def show_all(img, act_layer):
 
 	img.undo_group_end()
 
-def onion(img, act_layer, inc, show_context):
+def onion(img, act_layer, inc, context=None, dryrun=False):
 
 	# Frames are either top-level layers or layer groups.
 	frames = list(get_frames(img))
@@ -62,72 +69,95 @@ def onion(img, act_layer, inc, show_context):
 	if i is None:
 		return
 
-	CTX_SIZE = 2
-	ctx = [ False ] * (CTX_SIZE*2 + 1)
-
-	if show_context:
+	CONTEXT_SIZE = 1
+	if context is None:
 		# Find which neighboring frames are also currently visible -
 		# this is our desired context.
-		ctx = [ False ] * (CTX_SIZE*2 + 1)
-		for c in range(-CTX_SIZE, CTX_SIZE + 1):
-			# index into ctx
-			j = c + CTX_SIZE
+
+		context = [ None ] * (CONTEXT_SIZE*2 + 1)
+		for c in range(-CONTEXT_SIZE, CONTEXT_SIZE + 1):
+			# index into context
+			j = c + CONTEXT_SIZE
 			# frame
 			k = (i + c) % N
 
 			if frames[k].layer.visible:
-				ctx[j] = True
+				context[j] = frames[k].layer.opacity
 
-	# Select the next or previous frame.
-	i = (i + inc) % N
+	if not dryrun:
+		# Select the next or previous frame.
+		i = (i + inc) % N
 
-	# Change visibility of frames.
-	for frame in frames:
-		frame.visible = False
+		# Change visibility of frames.
+		for frame in frames:
+			frame.visible = False
 
-	if show_context:
-		for c in range(-CTX_SIZE, CTX_SIZE + 1):
-			# index into ctx
-			j = c + CTX_SIZE
+		assert (len(context) % 2) == 1
+
+		# index into context
+		for j in range(len(context)):
+			# context offset
+			c = j - (len(context) - 1) // 2
 			# frame
 			k = (i + c) % N
 
-			if ctx[j] and (k != i):
-				frames[k].opacity = NEXT_PREV_OPACITY
+			if (context[j] is not None) and (k != i) and not frames[k].visible:
+				frames[k].opacity = context[j]
 				frames[k].visible = True
 
-	frames[i].opacity = 100.
-	frames[i].visible = True
+		frames[i].opacity = 100.
+		frames[i].visible = True
 
-	img.undo_group_start()
+		img.undo_group_start()
 
-	for frame in frames:
-		frame.apply()
+		for frame in frames:
+			frame.apply()
 
-	img.undo_group_end()
+		img.undo_group_end()
 
-	# Use some heuristic to change the active layer as well.
-	if hasattr(frames[i].layer, 'layers'):
-		n = sanitize_name(act_layer.name)
+		# Use some heuristic to change the active layer as well.
+		if hasattr(frames[i].layer, 'layers'):
+			n = sanitize_name(act_layer.name)
 
-		for layer in frames[i].layer.layers:
-			if sanitize_name(layer.name) == n:
-				img.active_layer = layer
-				break
-	else:
-		img.active_layer = frames[i].layer
+			for layer in frames[i].layer.layers:
+				if sanitize_name(layer.name) == n:
+					img.active_layer = layer
+					break
+		else:
+			img.active_layer = frames[i].layer
+
+	return context
 
 def onion_up(img, layer):
-	onion(img, layer, -1, False)
+	onion(img, layer, -1, [100.])
 
 def onion_down(img, layer):
-	onion(img, layer, 1, False)
+	onion(img, layer, 1, [100.])
 
 def onion_up_ctx(img, layer):
-	onion(img, layer, -1, True)
+	onion(img, layer, -1, [NEXT_PREV_OPACITY, 100., NEXT_PREV_OPACITY])
 
 def onion_down_ctx(img, layer):
-	onion(img, layer, 1, True)
+	onion(img, layer, 1, [NEXT_PREV_OPACITY, 100., NEXT_PREV_OPACITY])
+
+def onion_up_ctx_auto(img, layer):
+	onion(img, layer, -1, None)
+
+def onion_down_ctx_auto(img, layer):
+	onion(img, layer, 1, None)
+
+def onion_cycle_context(img, layer):
+
+	context = onion(img, layer, 0, dryrun=True)
+
+	try:
+		current_default = DEFAULT_CONTEXTS.index(context)
+	except ValueError:
+		current_default = -1
+
+	current_default = (current_default + 1) % len(DEFAULT_CONTEXTS)
+
+	onion(img, layer, 0, DEFAULT_CONTEXTS[current_default])
 
 register(
 	"python_fu_onion_up",
@@ -180,6 +210,45 @@ register(
 	[],
 	[],
 	onion_down_ctx)
+
+register(
+	"python_fu_onion_up_ctx_auto",
+	"Onion up, auto context",
+	"Move one onion layer up, retain current context",
+	"Tomaz Solc",
+	"GPLv3+",
+	"2017",
+	"<Image>/Filters/Animation/Onion layers/up, auto context",
+	"*",
+	[],
+	[],
+	onion_up_ctx_auto)
+
+register(
+	"python_fu_onion_down_ctx_auto",
+	"Onion down, auto context",
+	"Move one onion layer down, retain current context",
+	"Tomaz Solc",
+	"GPLv3+",
+	"2017",
+	"<Image>/Filters/Animation/Onion layers/down, auto context",
+	"*",
+	[],
+	[],
+	onion_down_ctx_auto)
+
+register(
+	"python_fu_onion_cycle_ctx",
+	"Cycle through frame contexts",
+	"Cycle through no, prev, next, prev/next contexts.",
+	"Tomaz Solc",
+	"GPLv3+",
+	"2017",
+	"<Image>/Filters/Animation/Onion layers/cycle context",
+	"*",
+	[],
+	[],
+	onion_cycle_context)
 
 register(
 	"python_fu_onion_show_all",
