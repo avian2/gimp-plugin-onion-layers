@@ -66,6 +66,10 @@ The `python-fu-onion-show-all` can be used to reset the visibility and opacity
 of all layers. This is useful before exporting the layers using *Export
 Layers*, since otherwise some frames might get exported with reduced opacity.
 
+The plug-in at the moment also exposes `python-fu-onion-up-ctx-auto`,
+`python-fu-onion-down-ctx-auto` and `python-fu-onion-cycle-context`. These are
+still under development as of July 2018 and are not yet documented.
+
 ## Known problems
 
 If `-up` and `-down` functions don't do anything, make sure that you have at
