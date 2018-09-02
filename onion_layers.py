@@ -11,6 +11,8 @@ DEFAULT_CONTEXTS = [
 	[ NEXT_PREV_OPACITY, 100., None ],
 ]
 
+# see gimpshelf for persistent storage
+
 class Frame(object):
 	def __init__(self, layer):
 		self.layer = layer
@@ -37,6 +39,9 @@ def get_frames(img):
 		yield Frame(layer)
 
 def sanitize_name(name):
+	# if layer mask is active when a function is invoked,
+	# the active layer name has " mask" appended.
+	name = re.sub(r' mask$', '', name)
 	return re.sub(r'\d+', '', name)
 
 def show_all(img, act_layer):
@@ -122,6 +127,8 @@ def onion(img, act_layer, inc, context=None, dryrun=False):
 			for layer in frames[i].layer.layers:
 				if sanitize_name(layer.name) == n:
 					img.active_layer = layer
+					if layer.mask is not None:
+						layer.edit_mask = False
 					break
 		else:
 			img.active_layer = frames[i].layer
