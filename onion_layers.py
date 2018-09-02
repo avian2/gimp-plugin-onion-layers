@@ -166,6 +166,59 @@ def onion_cycle_context(img, layer):
 
 	onion(img, layer, 0, DEFAULT_CONTEXTS[current_default])
 
+def onion_copy_layer(img, act_layer):
+	frames = list(get_frames(img))
+
+	# If no frames were found, do nothing.
+	N = len(frames)
+	if N < 1:
+		return
+
+	# Find the location of the layer to copy in the current frame.
+	act_loc = -1
+	for frame in frames:
+		if not hasattr(frame.layer, 'layers'):
+			continue
+
+		for i, layer in enumerate(frame.layer.layers):
+			if layer.name == act_layer.name:
+				act_loc = i
+				break
+
+		if act_loc != -1:
+			break
+
+	act_name = sanitize_name(act_layer.name)
+
+	img.undo_group_start()
+
+	for frame in frames:
+
+		# If the frame is not a layer group, do nothing
+		if not hasattr(frame.layer, 'layers'):
+			continue
+
+		for layer in frame.layer.layers:
+			if sanitize_name(layer.name) == act_name:
+				# This frame already has a copy. Just copy over
+				# visibility and opacity.
+				layer.visible = act_layer.visible
+				layer.opacity = act_layer.opacity
+				break
+		else:
+			# This frame doesn't have a copy. Make one.
+			layer = act_layer.copy()
+
+			# Copy over frame number
+			g = re.search(r'(\d+)$', frame.layer.name)
+			if g is not None:
+				layer.name = sanitize_name(act_layer.name) + g.group(1)
+
+			pdb.gimp_image_insert_layer(img, layer, frame.layer, act_loc)
+
+	img.undo_group_end()
+
+
 register(
 	"python_fu_onion_up",
 	"Onion up",
@@ -269,5 +322,18 @@ register(
 	[],
 	[],
 	show_all)
+
+register(
+	"python_fu_onion_copy_layer",
+	"Copy layer to all frames",
+	"Copy active layer to all frames. If layer already exists in that frame, copy opacity and visibility.",
+	"Tomaz Solc",
+	"GPLv3+",
+	"2017",
+	"<Image>/Filters/Animation/Onion layers/Copy layer",
+	"*",
+	[],
+	[],
+	onion_copy_layer)
 
 main()
