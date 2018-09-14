@@ -439,12 +439,12 @@ def start():
 
 	register(
 		"python_fu_onion_up_ctx_auto",
-		"Onion up, auto",
+		"Onion up, auto context",
 		"Move one onion layer up, retain current context",
 		"Tomaz Solc",
 		"GPLv3+",
 		"2017",
-		"<Image>/Filters/Animation/Onion layers/up, auto context",
+		"<Image>/Filters/Animation/Onion layers/up, auto",
 		"*",
 		[],
 		[],
@@ -452,12 +452,12 @@ def start():
 
 	register(
 		"python_fu_onion_down_ctx_auto",
-		"Onion down, auto",
+		"Onion down, auto context",
 		"Move one onion layer down, retain current context",
 		"Tomaz Solc",
 		"GPLv3+",
 		"2017",
-		"<Image>/Filters/Animation/Onion layers/down, auto context",
+		"<Image>/Filters/Animation/Onion layers/down, auto",
 		"*",
 		[],
 		[],
@@ -465,12 +465,12 @@ def start():
 
 	register(
 		"python_fu_onion_up_ctx_auto_tint",
-		"Onion up, auto, tint",
+		"Onion up, auto context, tint",
 		"Move one onion layer up, retain current context. Next layer is shown with a green tint, previous layer is shown with a purple tint.",
 		"Tomaz Solc",
 		"GPLv3+",
 		"2017",
-		"<Image>/Filters/Animation/Onion layers/up, auto context",
+		"<Image>/Filters/Animation/Onion layers/up, auto, tint",
 		"*",
 		[],
 		[],
@@ -478,12 +478,12 @@ def start():
 
 	register(
 		"python_fu_onion_down_ctx_auto_tint",
-		"Onion down, auto, tint",
+		"Onion down, auto context, tint",
 		"Move one onion layer down, retain current context. Next layer is shown with a green tint, previous layer is shown with a purple tint.",
 		"Tomaz Solc",
 		"GPLv3+",
 		"2017",
-		"<Image>/Filters/Animation/Onion layers/down, auto context",
+		"<Image>/Filters/Animation/Onion layers/down, auto, tint",
 		"*",
 		[],
 		[],
