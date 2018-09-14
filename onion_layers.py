@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from gimpfu import *
 import re
 
 NEXT_PREV_OPACITY = 25.
@@ -290,161 +289,166 @@ def onion_copy_layer(img, act_layer):
 
 	img.undo_group_end()
 
+def start():
+	register(
+		"python_fu_onion_up",
+		"Onion up",
+		"Move one onion layer up",
+		"Tomaz Solc",
+		"Open source (BSD 3-clause license)",
+		"2017",
+		"<Image>/Filters/Animation/Onion layers/up",
+		"*",
+		[],
+		[],
+		onion_up)
 
-register(
-	"python_fu_onion_up",
-	"Onion up",
-	"Move one onion layer up",
-	"Tomaz Solc",
-	"Open source (BSD 3-clause license)",
-	"2017",
-	"<Image>/Filters/Animation/Onion layers/up",
-	"*",
-	[],
-	[],
-	onion_up)
+	register(
+		"python_fu_onion_down",
+		"Onion down",
+		"Move one onion layer down",
+		"Tomaz Solc",
+		"GPLv3+",
+		"2017",
+		"<Image>/Filters/Animation/Onion layers/down",
+		"*",
+		[],
+		[],
+		onion_down)
 
-register(
-	"python_fu_onion_down",
-	"Onion down",
-	"Move one onion layer down",
-	"Tomaz Solc",
-	"GPLv3+",
-	"2017",
-	"<Image>/Filters/Animation/Onion layers/down",
-	"*",
-	[],
-	[],
-	onion_down)
+	register(
+		"python_fu_onion_up_ctx",
+		"Onion up, contex",
+		"Move one onion layer up, show next/prev frame",
+		"Tomaz Solc",
+		"GPLv3+",
+		"2017",
+		"<Image>/Filters/Animation/Onion layers/up, context",
+		"*",
+		[],
+		[],
+		onion_up_ctx)
 
-register(
-	"python_fu_onion_up_ctx",
-	"Onion up, contex",
-	"Move one onion layer up, show next/prev frame",
-	"Tomaz Solc",
-	"GPLv3+",
-	"2017",
-	"<Image>/Filters/Animation/Onion layers/up, context",
-	"*",
-	[],
-	[],
-	onion_up_ctx)
+	register(
+		"python_fu_onion_down_ctx",
+		"Onion down, context",
+		"Move one onion layer down, show next/prev frame",
+		"Tomaz Solc",
+		"GPLv3+",
+		"2017",
+		"<Image>/Filters/Animation/Onion layers/down, context",
+		"*",
+		[],
+		[],
+		onion_down_ctx)
 
-register(
-	"python_fu_onion_down_ctx",
-	"Onion down, context",
-	"Move one onion layer down, show next/prev frame",
-	"Tomaz Solc",
-	"GPLv3+",
-	"2017",
-	"<Image>/Filters/Animation/Onion layers/down, context",
-	"*",
-	[],
-	[],
-	onion_down_ctx)
+	register(
+		"python_fu_onion_up_ctx_auto",
+		"Onion up, auto",
+		"Move one onion layer up, retain current context",
+		"Tomaz Solc",
+		"GPLv3+",
+		"2017",
+		"<Image>/Filters/Animation/Onion layers/up, auto context",
+		"*",
+		[],
+		[],
+		onion_up_ctx_auto)
 
-register(
-	"python_fu_onion_up_ctx_auto",
-	"Onion up, auto",
-	"Move one onion layer up, retain current context",
-	"Tomaz Solc",
-	"GPLv3+",
-	"2017",
-	"<Image>/Filters/Animation/Onion layers/up, auto context",
-	"*",
-	[],
-	[],
-	onion_up_ctx_auto)
+	register(
+		"python_fu_onion_down_ctx_auto",
+		"Onion down, auto",
+		"Move one onion layer down, retain current context",
+		"Tomaz Solc",
+		"GPLv3+",
+		"2017",
+		"<Image>/Filters/Animation/Onion layers/down, auto context",
+		"*",
+		[],
+		[],
+		onion_down_ctx_auto)
 
-register(
-	"python_fu_onion_down_ctx_auto",
-	"Onion down, auto",
-	"Move one onion layer down, retain current context",
-	"Tomaz Solc",
-	"GPLv3+",
-	"2017",
-	"<Image>/Filters/Animation/Onion layers/down, auto context",
-	"*",
-	[],
-	[],
-	onion_down_ctx_auto)
+	register(
+		"python_fu_onion_up_ctx_auto_tint",
+		"Onion up, auto, tint",
+		"Move one onion layer up, retain current context. Next layer is shown with a green tint, previous layer is shown with a purple tint.",
+		"Tomaz Solc",
+		"GPLv3+",
+		"2017",
+		"<Image>/Filters/Animation/Onion layers/up, auto context",
+		"*",
+		[],
+		[],
+		onion_up_ctx_auto_tint)
 
-register(
-	"python_fu_onion_up_ctx_auto_tint",
-	"Onion up, auto, tint",
-	"Move one onion layer up, retain current context. Next layer is shown with a green tint, previous layer is shown with a purple tint.",
-	"Tomaz Solc",
-	"GPLv3+",
-	"2017",
-	"<Image>/Filters/Animation/Onion layers/up, auto context",
-	"*",
-	[],
-	[],
-	onion_up_ctx_auto_tint)
+	register(
+		"python_fu_onion_down_ctx_auto_tint",
+		"Onion down, auto, tint",
+		"Move one onion layer down, retain current context. Next layer is shown with a green tint, previous layer is shown with a purple tint.",
+		"Tomaz Solc",
+		"GPLv3+",
+		"2017",
+		"<Image>/Filters/Animation/Onion layers/down, auto context",
+		"*",
+		[],
+		[],
+		onion_down_ctx_auto_tint)
 
-register(
-	"python_fu_onion_down_ctx_auto_tint",
-	"Onion down, auto, tint",
-	"Move one onion layer down, retain current context. Next layer is shown with a green tint, previous layer is shown with a purple tint.",
-	"Tomaz Solc",
-	"GPLv3+",
-	"2017",
-	"<Image>/Filters/Animation/Onion layers/down, auto context",
-	"*",
-	[],
-	[],
-	onion_down_ctx_auto_tint)
+	register(
+		"python_fu_onion_cycle_ctx",
+		"Cycle through frame contexts",
+		"Cycle through no, prev, next, prev/next contexts.",
+		"Tomaz Solc",
+		"GPLv3+",
+		"2017",
+		"<Image>/Filters/Animation/Onion layers/cycle context",
+		"*",
+		[],
+		[],
+		onion_cycle_context)
 
-register(
-	"python_fu_onion_cycle_ctx",
-	"Cycle through frame contexts",
-	"Cycle through no, prev, next, prev/next contexts.",
-	"Tomaz Solc",
-	"GPLv3+",
-	"2017",
-	"<Image>/Filters/Animation/Onion layers/cycle context",
-	"*",
-	[],
-	[],
-	onion_cycle_context)
+	register(
+		"python_fu_onion_cycle_ctx_tint",
+		"Cycle through frame contexts, with tinting enabled.",
+		"Cycle through no, prev, next, prev/next contexts. Next layer is shown with a green tint, previous layer is shown with a purple tint.",
+		"Tomaz Solc",
+		"GPLv3+",
+		"2017",
+		"<Image>/Filters/Animation/Onion layers/cycle context, tint",
+		"*",
+		[],
+		[],
+		onion_cycle_context_tint)
 
-register(
-	"python_fu_onion_cycle_ctx_tint",
-	"Cycle through frame contexts, with tinting enabled.",
-	"Cycle through no, prev, next, prev/next contexts. Next layer is shown with a green tint, previous layer is shown with a purple tint.",
-	"Tomaz Solc",
-	"GPLv3+",
-	"2017",
-	"<Image>/Filters/Animation/Onion layers/cycle context, tint",
-	"*",
-	[],
-	[],
-	onion_cycle_context_tint)
+	register(
+		"python_fu_onion_show_all",
+		"Show all frames",
+		"Shows all frames with full opacity",
+		"Tomaz Solc",
+		"GPLv3+",
+		"2017",
+		"<Image>/Filters/Animation/Onion layers/Show all",
+		"*",
+		[],
+		[],
+		show_all)
 
-register(
-	"python_fu_onion_show_all",
-	"Show all frames",
-	"Shows all frames with full opacity",
-	"Tomaz Solc",
-	"GPLv3+",
-	"2017",
-	"<Image>/Filters/Animation/Onion layers/Show all",
-	"*",
-	[],
-	[],
-	show_all)
+	register(
+		"python_fu_onion_copy_layer",
+		"Copy layer to all frames",
+		"Copy active layer to all frames. If layer already exists in that frame, copy opacity and visibility.",
+		"Tomaz Solc",
+		"GPLv3+",
+		"2017",
+		"<Image>/Filters/Animation/Onion layers/Copy layer",
+		"*",
+		[],
+		[],
+		onion_copy_layer)
 
-register(
-	"python_fu_onion_copy_layer",
-	"Copy layer to all frames",
-	"Copy active layer to all frames. If layer already exists in that frame, copy opacity and visibility.",
-	"Tomaz Solc",
-	"GPLv3+",
-	"2017",
-	"<Image>/Filters/Animation/Onion layers/Copy layer",
-	"*",
-	[],
-	[],
-	onion_copy_layer)
+	main()
 
-main()
+if __name__ == "__main__":
+	from gimpfu import *
+
+	start()
