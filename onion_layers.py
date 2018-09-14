@@ -343,6 +343,9 @@ def renumber_frames(img):
 def onion_add_frame(img, act_layer):
 	frames = list(get_frames(img))
 
+	# remember current frame context
+	context = onion(img, act_layer, 0, dryrun=True)
+
 	# If no frames were found, do nothing.
 	N = len(frames)
 	if N < 1:
@@ -364,6 +367,10 @@ def onion_add_frame(img, act_layer):
 
 	img.undo_group_start()
 
+	# hide the frame we're copying so that the new frame will be detected
+	# as currently visible.
+	act_frame.visible = False
+
 	new_frame = pdb.gimp_layer_group_new(img)
 	new_frame.name = act_name.to_string()
 	pdb.gimp_image_insert_layer(img, new_frame, None, n)
@@ -381,6 +388,11 @@ def onion_add_frame(img, act_layer):
 		pdb.gimp_image_insert_layer(img, new_layer, new_frame, n)
 
 	renumber_frames(img)
+
+	# quick dirty check if tinting was used
+	do_tint = (pdb.gimp_image_get_layer_by_name(img, "onion-tint-after") is not None)
+
+	onion(img, act_layer, 0, context, do_tint=do_tint)
 
 	img.undo_group_end()
 
