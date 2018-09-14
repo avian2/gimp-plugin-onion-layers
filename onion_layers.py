@@ -182,7 +182,7 @@ def onion(img, act_layer, inc, context=None, dryrun=False, do_tint=False):
 				frames[k].visible = True
 
 				if do_tint:
-					if c > 0:
+					if c < 0:
 						frames[k].tint = "after"
 					else:
 						frames[k].tint = "before"
