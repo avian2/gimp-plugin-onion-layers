@@ -107,7 +107,7 @@ def show_all(img, act_layer):
 
 	img.undo_group_end()
 
-def onion(img, act_layer, inc, context=None, dryrun=False):
+def onion(img, act_layer, inc, context=None, dryrun=False, do_tint=False):
 
 	# Frames are either top-level layers or layer groups.
 	frames = list(get_frames(img))
@@ -163,10 +163,11 @@ def onion(img, act_layer, inc, context=None, dryrun=False):
 				frames[k].opacity = context[j]
 				frames[k].visible = True
 
-				if c > 0:
-					frames[k].tint = "after"
-				else:
-					frames[k].tint = "before"
+				if do_tint:
+					if c > 0:
+						frames[k].tint = "after"
+					else:
+						frames[k].tint = "before"
 
 		frames[i].opacity = 100.
 		frames[i].visible = True
@@ -212,7 +213,13 @@ def onion_up_ctx_auto(img, layer):
 def onion_down_ctx_auto(img, layer):
 	onion(img, layer, 1, None)
 
-def onion_cycle_context(img, layer):
+def onion_up_ctx_auto_tint(img, layer):
+	onion(img, layer, -1, None, do_tint=True)
+
+def onion_down_ctx_auto_tint(img, layer):
+	onion(img, layer, 1, None, do_tint=True)
+
+def cycle_context(img, layer, do_tint=False):
 
 	context = onion(img, layer, 0, dryrun=True)
 
@@ -223,7 +230,13 @@ def onion_cycle_context(img, layer):
 
 	current_default = (current_default + 1) % len(DEFAULT_CONTEXTS)
 
-	onion(img, layer, 0, DEFAULT_CONTEXTS[current_default])
+	onion(img, layer, 0, DEFAULT_CONTEXTS[current_default], do_tint=do_tint)
+
+def onion_cycle_context(img, layer):
+	cycle_context(img, layer, do_tint=False)
+
+def onion_cycle_context_tint(img, layer):
+	cycle_context(img, layer, do_tint=True)
 
 def onion_copy_layer(img, act_layer):
 	frames = list(get_frames(img))
@@ -332,7 +345,7 @@ register(
 
 register(
 	"python_fu_onion_up_ctx_auto",
-	"Onion up, auto context",
+	"Onion up, auto",
 	"Move one onion layer up, retain current context",
 	"Tomaz Solc",
 	"GPLv3+",
@@ -345,7 +358,7 @@ register(
 
 register(
 	"python_fu_onion_down_ctx_auto",
-	"Onion down, auto context",
+	"Onion down, auto",
 	"Move one onion layer down, retain current context",
 	"Tomaz Solc",
 	"GPLv3+",
@@ -355,6 +368,32 @@ register(
 	[],
 	[],
 	onion_down_ctx_auto)
+
+register(
+	"python_fu_onion_up_ctx_auto_tint",
+	"Onion up, auto, tint",
+	"Move one onion layer up, retain current context. Next layer is shown with a green tint, previous layer is shown with a purple tint.",
+	"Tomaz Solc",
+	"GPLv3+",
+	"2017",
+	"<Image>/Filters/Animation/Onion layers/up, auto context",
+	"*",
+	[],
+	[],
+	onion_up_ctx_auto_tint)
+
+register(
+	"python_fu_onion_down_ctx_auto_tint",
+	"Onion down, auto, tint",
+	"Move one onion layer down, retain current context. Next layer is shown with a green tint, previous layer is shown with a purple tint.",
+	"Tomaz Solc",
+	"GPLv3+",
+	"2017",
+	"<Image>/Filters/Animation/Onion layers/down, auto context",
+	"*",
+	[],
+	[],
+	onion_down_ctx_auto_tint)
 
 register(
 	"python_fu_onion_cycle_ctx",
@@ -368,6 +407,19 @@ register(
 	[],
 	[],
 	onion_cycle_context)
+
+register(
+	"python_fu_onion_cycle_ctx_tint",
+	"Cycle through frame contexts, with tinting enabled.",
+	"Cycle through no, prev, next, prev/next contexts. Next layer is shown with a green tint, previous layer is shown with a purple tint.",
+	"Tomaz Solc",
+	"GPLv3+",
+	"2017",
+	"<Image>/Filters/Animation/Onion layers/cycle context, tint",
+	"*",
+	[],
+	[],
+	onion_cycle_context_tint)
 
 register(
 	"python_fu_onion_show_all",
