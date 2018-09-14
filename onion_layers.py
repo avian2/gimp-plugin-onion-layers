@@ -376,7 +376,7 @@ def onion_add_frame(img, act_layer):
 		name.num = 99
 
 		new_layer = pdb.gimp_layer_new(img, img.width, img.height, 1,
-				name.to_string(), layer.opacity, 7)
+				name.to_string(), layer.opacity, 0)
 
 		pdb.gimp_image_insert_layer(img, new_layer, new_frame, n)
 
