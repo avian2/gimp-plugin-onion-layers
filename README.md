@@ -1,19 +1,28 @@
 # GIMP onion layers plug-in
 
 Onion layers is a plug-in for the [GIMP](https://www.gimp.org/) drawing
-program. It provides some convenient shortcuts for switching between frames
-when making hand-drawn animations. It uses the concept sometimes called *onion
-layering*, where the frame you are currently working on is overlaid with the
-previous and next frames to aid in drawing.
+program. It provides some convenient shortcuts for moving up and down the stack
+of frames when making hand-drawn animations, as well as some other useful
+functions. It's based on the concept called *onion layering*, where the frame
+you are currently working on is overlaid with the previous and next frames to
+aid in drawing.
 
 ![](figures/example.png)
 
 Currently it provides the following functions that can be assigned to keyboard
 shortcuts:
 
- *  Switch to previous/next frame, showing neighboring frames with reduced opacity.
- *  Switch to previous/next frame and show only that frame.
+ *  Switch to next/previous frame, optionally showing some neighboring frames.
+ *  Cycle through showing no neighboring frames, only next frame, only previous
+    frame, or both next and previous frames.
  *  Show all frames will full opacity.
+
+Some other useful functions when drawing animations where each frame consists
+of multiple layers are also included:
+
+ *  Copy a layer to all frames.
+ *  Add a new frame, taking the layers in the current one as a template.
+
 
 ## Installation
 
@@ -21,54 +30,107 @@ To install the plug-in, copy the `onion_layers.py` file to `[your home folder]\.
 
 If you have GIMP 2.8 on Linux, running `make install` should do the right thing.
 
-The plug-in was developed for GIMP 2.8.14 and Python 2.7. It might also work
+The plug-in was developed for GIMP 2.8.18 and Python 2.7.13. It might also work
 with other versions - feedback regarding that is welcome.
+
 
 ## Usage
 
 Functions provided by the plug-in can be found in the GIMP menu under "Filters
 -> Animation -> Onion layers".
 
-You probably want to assign keyboard shortcuts to them however. Go to "Edit ->
-Keyboard Shortcuts" and search for "onion". A good choice of shortcuts for
-previous/next frame functions are period and comma keys on a US keyboard. They
-shouldn't conflict with other GIMP shortcuts and match the frame skip shortcuts
-on some video players.
+You want to assign keyboard shortcuts to them however. Go to "Edit -> Keyboard
+Shortcuts" and search for "onion". A good choice of shortcuts for previous/next
+frame functions are period and comma keys on a US keyboard. They shouldn't
+conflict with other GIMP shortcuts and match the frame skip shortcuts on some
+video players.
+
+Following shows the list of available functions as well as a suggestion on what
+keys to assign to them:
 
 ![](figures/keyboard-shortcuts.png)
 
 The plug-in assumes that each top-level layer or layer group represents one
-animation frame. If you have background layers that are common to all frames,
-you can put brackets around their names and they will be ignored by this
-plug-in. Note that this is consistent with how the [Export
-Layers](https://github.com/khalim19/gimp-plugin-export-layers) handles layers.
+animation frame. You should have layers named consistently: top-level groups
+named "frame01", "frame02", etc. and then layers inside named using the same
+pattern, like in the following example. The layer on top of the stack is the
+*last* layer (same ordering is used for animated GIF functions that are built
+into GIMP).
 
+If you have background layers that are common to all frames, you can put
+[brackets] around their names and they will be ignored by this plug-in. This is
+consistent with how the [Export
+Layers](https://github.com/khalim19/gimp-plugin-export-layers) handles
+background layers.
 
 ![](figures/layers.png)
 
-The `python-fu-onion-down-ctx` and `python-fu-onion-up-ctx` functions change
-the visibility and opacity of top-level layers or groups one step up or down.
+
+### Onion layer up/down functions
+
+The `python-fu-onion-down-ctx-auto-tint` and `python-fu-onion-up-ctx-auto-tint`
+functions change the visibility and opacity of top-level layers or groups one
+step up or down.
 
 The currently active frame will be given full opacity, frames one step above
-and below in the stack will be given 25% opacity. Other layers will be hidden.
-This is most useful when working on outlines.
+and below in the stack (if shown) will be given 25% opacity. They will also be
+slightly tinted green (next) and purple (previous). Other layers will be hidden.
 
 The active layer (the layer where the drawing tools have effect) will be
-changed accordingly as well. The plug-in uses some simple heuristics to
-identify matching layers inside groups. It's best to use a naming scheme shown
-in the screenshot above (e.g. nameXX where XX is the number of the frame).
+changed accordingly as well, if you are using the recommended layer naming scheme.
+
+The tinting of layers is done by adding two layers to your image
+("onion-tint-before", "onion-tint-after"). If you find that this makes GIMP too
+slow or you don't like tinting, you can use the identical functions without the
+"-tint" in their names.
 
 The `python-fu-onion-up` and `python-fu-onion-down` functions work in the same
-way, except that neighboring frames are not shown. This is sometimes useful to
-reduce clutter.
+way, except that they force the neighboring frames not to be shown. This is
+sometimes useful to quickly reduce clutter.
+
+
+### Selecting neighboring layer visibility
+
+The `python-fu-onion-cycle-ctx-tint` function will cycle through the four possible
+settings for the visibility of neighboring frames:
+
+ *  No neighboring frames shown,
+ *  both previous and next frames shown,
+ *  only next frame shown and
+ *  only previous frame shown.
+
+Display of neighboring frames gives best results when working on black outlines
+on transparent background. If you have frames colored-in, it's best to not show
+neighboring frames.
+
+The `python-fu-onion-cycle-ctx` function does the same thing, except it does
+not use tinting layers.
+
+
+### Preparing frames for export
 
 The `python-fu-onion-show-all` can be used to reset the visibility and opacity
 of all layers. This is useful before exporting the layers using *Export
 Layers*, since otherwise some frames might get exported with reduced opacity.
 
-The plug-in at the moment also exposes `python-fu-onion-up-ctx-auto`,
-`python-fu-onion-down-ctx-auto` and `python-fu-onion-cycle-context`. These are
-still under development as of July 2018 and are not yet documented.
+This function also cleans up the tinting layers.
+
+
+### Other useful things
+
+These functions only work when frames are layer groups, not single frames.
+
+`python-fu-onion-copy-layer` will copy currently active layer to all frames. It
+will rename the copies to keep the correct naming scheme.
+
+If a layer with such a name already exists in a frame, it will only copy over
+opacity and visibility. Hence this function is useful both to add a layer to
+all frames as well as quickly show or hide a layer in all frames.
+
+`python-fu-onion-add-frame` will add a new frame above the currently active
+one. It will renumber all other frames to keep consistent naming. It will also
+create blank layers inside the new group, taking the current frame as a template.
+
 
 ## Known problems
 
@@ -80,9 +142,16 @@ there is no way for a plug-in to manipulate the undo history. The code makes
 sure to do its thing with as few undo steps as possible, but fundamentally this
 is a limitation of the GIMP plug-in interface.
 
+If you press keyboard shortcuts faster than your computer can follow them, you
+might get a pop-up with an error similar to "Plug-In 'up, auto, tint' left
+image undo in inconsistent state, closing open undo groups." This seems to be
+caused by some race condition in GIMP. If this happens, the visibility of
+layers might be messed up, but otherwise it shouldn't have any effect. Calling
+`cycle-ctx` should restore a sane state.
+
 ## License
 
-GIMP onion layers plug-in is Copyright (C) 2017 Tomaž Šolc tomaz.solc@tablix.org
+GIMP onion layers plug-in is Copyright (C) 2018 Tomaž Šolc tomaz.solc@tablix.org
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
