@@ -14,12 +14,20 @@ DEFAULT_CONTEXTS = [
 # see gimpshelf for persistent storage
 
 class Frame(object):
+	TINT_COLORS = {
+		'before': (100, 48, 135),
+		'after': (83, 135, 48),
+	}
+
+	TINT_PREFIX = "onion-tint-"
+
 	def __init__(self, layer):
 		self.layer = layer
 		self.opacity = None
 		self.visible = None
+		self.tint = None
 
-	def apply(self):
+	def apply(self, img):
 		# we do it this way to prevent unnecessarily cluttering the undo history.
 		#
 		# AFIAK there is not way to manipulate the history from a plug-in.
@@ -30,6 +38,50 @@ class Frame(object):
 		if (self.visible is not None) and (self.layer.visible != self.visible):
 			self.layer.visible = self.visible
 
+		# Comment this out if you don't like layer tinting
+		self._apply_tint(img)
+
+	def _create_tint_layer(self, img, name, color):
+		# Note: tint layer must be RGBA to preseve alpha for underlying layers.
+		# layer mode: addition
+		tint_layer = pdb.gimp_layer_new(img, img.width, img.height, 1, name, 100, 7)
+		pdb.gimp_image_insert_layer(img, tint_layer, self.layer, 0)
+		c = pdb.gimp_context_get_foreground()
+		pdb.gimp_context_set_foreground(color)
+		pdb.gimp_edit_fill(tint_layer, 0)
+		pdb.gimp_context_set_foreground(c)
+
+	def _apply_tint(self, img):
+		if not hasattr(self.layer, 'layers'):
+			return
+
+		if self.tint is None:
+			# If the whole freme is not currently visible, no need
+			# to waste time doing anything.
+			if self.visible:
+				for layer in self.layer.layers:
+					if self.TINT_PREFIX in layer.name:
+						layer.visible = False
+						break
+		elif self.tint == "clean":
+			# This will actually remove the tint layer compared to
+			# just making it invisible. We use this when we want a
+			# clean image.
+			for layer in self.layer.layers:
+				if self.TINT_PREFIX in layer.name:
+					pdb.gimp_image_remove_layer(img, layer)
+		else:
+			tint_layer = pdb.gimp_image_get_layer_by_name(img, "onion-tint-%s" % (self.tint,))
+
+			if tint_layer is not None:
+				# If a tint layer already exists somewhere in the image, we just
+				# move it here. It's much faster than creating a new layer from scratch
+				# and we only ever need two tint layers to exist simultaneously.
+				pdb.gimp_image_reorder_item(img, tint_layer, self.layer, 0)
+				tint_layer.visible = True
+			else:
+				self._create_tint_layer(img, "onion-tint-%s" % (self.tint,),
+						self.TINT_COLORS[self.tint])
 
 def get_frames(img):
 	for layer in img.layers:
@@ -50,7 +102,8 @@ def show_all(img, act_layer):
 	for frame in get_frames(img):
 		frame.opacity = 100.
 		frame.visible = True
-		frame.apply()
+		frame.tint = "clean"
+		frame.apply(img)
 
 	img.undo_group_end()
 
@@ -110,13 +163,19 @@ def onion(img, act_layer, inc, context=None, dryrun=False):
 				frames[k].opacity = context[j]
 				frames[k].visible = True
 
+				if c > 0:
+					frames[k].tint = "after"
+				else:
+					frames[k].tint = "before"
+
 		frames[i].opacity = 100.
 		frames[i].visible = True
+		frames[i].tint = None
 
 		img.undo_group_start()
 
 		for frame in frames:
-			frame.apply()
+			frame.apply(img)
 
 		img.undo_group_end()
 
