@@ -89,11 +89,30 @@ def get_frames(img):
 
 		yield Frame(layer)
 
+class NumberedName(object):
+	def __init__(self, name):
+		# if layer mask is active when a function is invoked,
+		# the active layer name has " mask" appended.
+		name_nomask = re.sub(r' mask$', '', name)
+
+		self.is_mask = (name_nomask != name)
+
+		g = re.search(r'(\d+)$', name_nomask)
+		if g:
+			self.num = int(g.group(1))
+			self.width = len(g.group(1))
+		else:
+			self.num = None
+			self.width = None
+
+		self.name = re.sub(r'\d+$', '', name_nomask)
+
+	def to_string(self):
+		fmt = "%s%0" + str(self.width) + "d"
+		return fmt % (self.name, self.num)
+
 def sanitize_name(name):
-	# if layer mask is active when a function is invoked,
-	# the active layer name has " mask" appended.
-	name = re.sub(r' mask$', '', name)
-	return re.sub(r'\d+', '', name)
+	return NumberedName(name).name
 
 def show_all(img, act_layer):
 	img.undo_group_start()
@@ -289,6 +308,82 @@ def onion_copy_layer(img, act_layer):
 
 	img.undo_group_end()
 
+def renumber_frames(img):
+
+	frames = list(get_frames(img))
+
+	def update_layer_name(layer, num, temp):
+		nn = NumberedName(layer.name)
+
+		if nn.num:
+			if temp:
+				nn.name = "temp-" + nn.name
+			else:
+				nn.name = re.sub(r'^temp-', '', nn.name)
+			nn.num = num
+
+			layer.name = nn.to_string()
+
+	def do_renumber(temp):
+
+		for n, frame in enumerate(frames):
+
+			m = len(frames) - n - 1
+
+			update_layer_name(frame.layer, m, temp)
+
+			if hasattr(frame.layer, 'layers'):
+				for layer in frame.layer.layers:
+					update_layer_name(layer, m, temp)
+
+
+	do_renumber(temp=True)
+	do_renumber(temp=False)
+
+def onion_add_frame(img, act_layer):
+	frames = list(get_frames(img))
+
+	# If no frames were found, do nothing.
+	N = len(frames)
+	if N < 1:
+		return
+
+	# Get the top level layer (frame) from the currently active layer
+	act_frame = act_layer
+	while act_frame.parent is not None:
+		act_frame = act_frame.parent
+
+	# This only works if frames are layer groups
+	if not hasattr(act_frame, 'layers'):
+		return
+
+	n = pdb.gimp_image_get_item_position(img, act_frame)
+
+	act_name = NumberedName(act_frame.name)
+	act_name.num = 99
+
+	img.undo_group_start()
+
+	new_frame = pdb.gimp_layer_group_new(img)
+	new_frame.name = act_name.to_string()
+	pdb.gimp_image_insert_layer(img, new_frame, None, n)
+
+	for n, layer in enumerate(act_frame.layers):
+		name = NumberedName(layer.name)
+
+		if name.num is None:
+			continue
+		name.num = 99
+
+		new_layer = pdb.gimp_layer_new(img, img.width, img.height, 1,
+				name.to_string(), layer.opacity, 7)
+
+		pdb.gimp_image_insert_layer(img, new_layer, new_frame, n)
+
+	renumber_frames(img)
+
+	img.undo_group_end()
+
 def start():
 	register(
 		"python_fu_onion_up",
@@ -445,6 +540,19 @@ def start():
 		[],
 		[],
 		onion_copy_layer)
+
+	register(
+		"python_fu_onion_add_frame",
+		"Add a frame above current one",
+		"Add a frame above current one, copying all the layers.",
+		"Tomaz Solc",
+		"GPLv3+",
+		"2017",
+		"<Image>/Filters/Animation/Onion layers/Add frame",
+		"*",
+		[],
+		[],
+		onion_add_frame)
 
 	main()
 
