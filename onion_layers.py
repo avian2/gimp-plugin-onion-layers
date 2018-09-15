@@ -40,6 +40,13 @@ class Frame(object):
 		# Comment this out if you don't like layer tinting
 		self._apply_tint(img)
 
+	@classmethod
+	def clear_tints(cls, img):
+		for tint in cls.TINT_COLORS.keys():
+			tint_layer = pdb.gimp_image_get_layer_by_name(img, cls.TINT_PREFIX + tint)
+			if tint_layer is not None:
+				tint_layer.visible = False
+
 	def _create_tint_layer(self, img, name, color):
 		# Note: tint layer must be RGBA to preseve alpha for underlying layers.
 		# layer mode: addition
@@ -55,13 +62,7 @@ class Frame(object):
 			return
 
 		if self.tint is None:
-			# If the whole freme is not currently visible, no need
-			# to waste time doing anything.
-			if self.visible:
-				for layer in self.layer.layers:
-					if self.TINT_PREFIX in layer.name:
-						layer.visible = False
-						break
+			return
 		elif self.tint == "clean":
 			# This will actually remove the tint layer compared to
 			# just making it invisible. We use this when we want a
@@ -70,7 +71,7 @@ class Frame(object):
 				if self.TINT_PREFIX in layer.name:
 					pdb.gimp_image_remove_layer(img, layer)
 		else:
-			tint_layer = pdb.gimp_image_get_layer_by_name(img, "onion-tint-%s" % (self.tint,))
+			tint_layer = pdb.gimp_image_get_layer_by_name(img, self.TINT_PREFIX + self.tint)
 
 			if tint_layer is not None:
 				# If a tint layer already exists somewhere in the image, we just
@@ -79,7 +80,7 @@ class Frame(object):
 				pdb.gimp_image_reorder_item(img, tint_layer, self.layer, 0)
 				tint_layer.visible = True
 			else:
-				self._create_tint_layer(img, "onion-tint-%s" % (self.tint,),
+				self._create_tint_layer(img, self.TINT_PREFIX + self.tint,
 						self.TINT_COLORS[self.tint])
 
 def get_frames(img):
@@ -193,6 +194,7 @@ def onion(img, act_layer, inc, context=None, dryrun=False, do_tint=False):
 
 		img.undo_group_start()
 
+		Frame.clear_tints(img)
 		for frame in frames:
 			frame.apply(img)
 
