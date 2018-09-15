@@ -28,7 +28,8 @@ of multiple layers are also included:
 
 To install the plug-in, copy the `onion_layers.py` file to `[your home folder]\.gimp-[GIMP version]\plug-ins`.
 
-If you have GIMP 2.8 on Linux, running `make install` should do the right thing.
+If you have GIMP 2.8 on Linux, running `make install` should do the right
+thing. The plug-in will likely not work on Windows as-is (patches would be welcome)
 
 The plug-in was developed for GIMP 2.8.18 and Python 2.7.13. It might also work
 with other versions - feedback regarding that is welcome.
@@ -141,13 +142,6 @@ Changing layer visibility and opacity clutters the undo history. Unfortunately
 there is no way for a plug-in to manipulate the undo history. The code makes
 sure to do its thing with as few undo steps as possible, but fundamentally this
 is a limitation of the GIMP plug-in interface.
-
-If you press keyboard shortcuts faster than your computer can follow them, you
-might get a pop-up with an error similar to "Plug-In 'up, auto, tint' left
-image undo in inconsistent state, closing open undo groups." This seems to be
-caused by some race condition in GIMP. If this happens, the visibility of
-layers might be messed up, but otherwise it shouldn't have any effect. Calling
-`cycle-ctx` should restore a sane state.
 
 ## License
 

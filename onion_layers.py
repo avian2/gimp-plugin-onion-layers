@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 import re
+import fcntl
+from contextlib import contextmanager
+import os
 
 NEXT_PREV_OPACITY = 25.
 
@@ -9,6 +12,31 @@ DEFAULT_CONTEXTS = [
 	[ None, 100., NEXT_PREV_OPACITY ],
 	[ NEXT_PREV_OPACITY, 100., None ],
 ]
+
+# This is a bit ugly, but if you press keyboard shortcuts faster than the
+# functions execute, you end up with two instances running in parallel. This
+# leads to annoying pop-ups with  "Plug-In 'up, auto, tint' left image undo in
+# inconsistent state, closing open undo groups.".
+#
+# We can't use the usual threading.Lock since each function call runs in a
+# separate interpreter process that is forked by GIMP.
+#
+# So we do our own file locking here with fcntl. This bit is the only thing
+# that is incompatible with Windows, so if you're looking to fix that, replace
+# flocked() with a similar mechanism that works there and submit a pull
+# request.
+
+LOCK_DIR = os.environ.get('XDG_CACHE_HOME', os.path.join(os.environ['HOME'], '.cache'))
+LOCK_FILE = os.path.join(LOCK_DIR, 'gimp-plugin-onion-layers-lock')
+
+@contextmanager
+def flocked():
+	with open(LOCK_FILE, "w") as fd:
+		try:
+			fcntl.flock(fd, fcntl.LOCK_EX)
+			yield
+		finally:
+			fcntl.flock(fd, fcntl.LOCK_UN)
 
 # see gimpshelf for persistent storage
 
@@ -126,7 +154,11 @@ def show_all(img, act_layer):
 
 	img.undo_group_end()
 
-def onion(img, act_layer, inc, context=None, dryrun=False, do_tint=False):
+def onion(*args, **kwargs):
+	with flocked():
+		return onion_unsafe(*args, **kwargs)
+
+def onion_unsafe(img, act_layer, inc, context=None, dryrun=False, do_tint=False):
 
 	# Frames are either top-level layers or layer groups.
 	frames = list(get_frames(img))

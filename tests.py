@@ -1,6 +1,6 @@
 import unittest
 
-from onion_layers import NumberedName
+from onion_layers import NumberedName, flocked
 
 class TestNumberedName(unittest.TestCase):
 	def test_parse(self):
@@ -15,6 +15,11 @@ class TestNumberedName(unittest.TestCase):
 		s = nn.to_string()
 
 		self.assertEqual(s, "outline01")
+
+class TestFlocked(unittest.TestCase):
+	def test_flock(self):
+		with flocked():
+			pass
 
 if __name__ == "__main__":
 	unittest.main(verbosity=2)
