@@ -349,7 +349,7 @@ def renumber_frames(img):
 	def update_layer_name(layer, num, temp):
 		nn = NumberedName(layer.name)
 
-		if nn.num:
+		if nn.num is not None:
 			if temp:
 				nn.name = "temp-" + nn.name
 			else:
@@ -362,7 +362,7 @@ def renumber_frames(img):
 
 		for n, frame in enumerate(frames):
 
-			m = len(frames) - n - 1
+			m = len(frames) - n
 
 			update_layer_name(frame.layer, m, temp)
 
