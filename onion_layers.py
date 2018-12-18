@@ -430,6 +430,27 @@ def onion_add_frame(img, act_layer):
 
 	img.undo_group_end()
 
+def onion_enable_disable_frame(img, act_layer, enable):
+	# Get the top level layer (frame) from the currently active layer
+	act_frame = act_layer
+	while act_frame.parent is not None:
+		act_frame = act_frame.parent
+
+	img.undo_group_start()
+
+	if enable:
+		act_frame.name = act_frame.name.replace('[', '').replace(']', '')
+	else:
+		act_frame.name = '[' + act_frame.name + ']'
+
+	img.undo_group_end()
+
+def onion_enable_frame(img, act_layer):
+	onion_enable_disable_frame(img, act_layer, True)
+
+def onion_disable_frame(img, act_layer):
+	onion_enable_disable_frame(img, act_layer, False)
+
 def start():
 	register(
 		"python_fu_onion_up",
@@ -599,6 +620,33 @@ def start():
 		[],
 		[],
 		onion_add_frame)
+
+	register(
+		"python_fu_onion_enable_frame",
+		"Make the current frame a cel frame",
+		"Removes square brackets around the name of the currently active frame.",
+		"Tomaz Solc",
+		"GPLv3+",
+		"2018",
+		"<Image>/Filters/Animation/Onion layers/Enable frame",
+		"*",
+		[],
+		[],
+		onion_enable_frame)
+
+	register(
+		"python_fu_onion_disable_frame",
+		"Make the current frame a background frame",
+		"Puts square brackets around the name of the currently active frame.",
+		"Tomaz Solc",
+		"GPLv3+",
+		"2018",
+		"<Image>/Filters/Animation/Onion layers/Disable frame",
+		"*",
+		[],
+		[],
+		onion_disable_frame)
+
 
 	main()
 
