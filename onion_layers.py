@@ -412,8 +412,8 @@ def onion_add_frame(img, act_layer):
 
 	n = pdb.gimp_image_get_item_position(img, act_frame)
 
-	act_name = NumberedName.from_layer_name(act_frame.name)
-	act_name.num = 99
+	new_frame_name = get_last_numbered_name(frames)
+	new_frame_name.num += 1
 
 	img.undo_group_start()
 
@@ -422,7 +422,7 @@ def onion_add_frame(img, act_layer):
 	act_frame.visible = False
 
 	new_frame = pdb.gimp_layer_group_new(img)
-	new_frame.name = act_name.to_string()
+	new_frame.name = new_frame_name.to_string()
 	pdb.gimp_image_insert_layer(img, new_frame, None, n)
 
 	for n, layer in enumerate(act_frame.layers):
@@ -467,6 +467,25 @@ def onion_enable_frame(img, act_layer):
 def onion_disable_frame(img, act_layer):
 	onion_enable_disable_frame(img, act_layer, False)
 
+# Gets the highest numbered frame, or a sane default
+# if no numbered frame was found.
+def get_last_numbered_name(frames):
+	last_name = None
+
+	for frame in frames:
+		name = NumberedName.from_layer_name(frame.layer.name)
+		if name.num is not None:
+			if last_name is None:
+				last_name = name
+			else:
+				if name.num > last_name.num:
+					last_name = name
+
+	if last_name is None:
+		last_name = NumberedName('frame', 0, 4)
+
+	return last_name
+
 def onion_convert_to_groups(img, act_layer):
 	frames = list(get_frames(img))
 
@@ -477,26 +496,10 @@ def onion_convert_to_groups(img, act_layer):
 
 	# We need to generate some frame names that
 	# are not used elsewhere (we'll renumber later)
-	fnum = -1
-	fname = None
-	fwidth = None
-	for frame in frames:
-		name = NumberedName.from_layer_name(frame.layer.name)
-		if name.num is not None:
-			if name.num > fnum:
-				fnum = name.num
-			if fname is None:
-				fname = name.name
-			if fwidth is None:
-				fwidth = name.width
-	fnum += 1
+	new_frame_name = get_last_numbered_name(frames)
+	new_frame_name.num += 1
 
-	# Some sane defaults if none were found
-	if fname is None:
-		fname = 'frame'
-		fwidth = 4
-
-	lname = 'imported'
+	layer_name = 'imported'
 
 	img.undo_group_start()
 
@@ -506,19 +509,17 @@ def onion_convert_to_groups(img, act_layer):
 		# create a new group and put it in.
 		if not hasattr(frame.layer, 'layers'):
 			new_frame = pdb.gimp_layer_group_new(img)
-
-			name = NumberedName(fname, fnum, fwidth)
-			new_frame.name = name.to_string()
+			new_frame.name = new_frame_name.to_string()
 
 			pdb.gimp_image_insert_layer(img, new_frame, None, n)
 
 			pdb.gimp_image_reorder_item(img, frame.layer, new_frame, 0)
 
-			name = NumberedName(lname, fnum, fwidth)
+			name = NumberedName(layer_name, new_frame_name.num, new_frame_name.width)
 			frame.layer.name = name.to_string()
 
 			has_new_frames = True
-			fnum += 1
+			new_frame_name.num += 1
 
 	# Renumber frames if any new ones have been added
 	if has_new_frames:
