@@ -190,9 +190,9 @@ def onion_unsafe(img, act_layer, inc, context=None, dryrun=False, do_tint=False)
 		if frame.layer.visible and (frame.layer.opacity == 100.):
 			i = j
 
-	# If no visible frame was found, do nothing.
+	# If no visible frame was found, show first frame.
 	if i is None:
-		return
+		i = 0
 
 	CONTEXT_SIZE = 1
 	if context is None:
