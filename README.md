@@ -119,8 +119,6 @@ This function also cleans up the tinting layers.
 
 ### Other useful things
 
-These functions only work when frames are layer groups, not single frames.
-
 `python-fu-onion-copy-layer` will copy currently active layer to all frames. It
 will rename the copies to keep the correct naming scheme.
 
@@ -132,9 +130,16 @@ all frames as well as quickly show or hide a layer in all frames.
 one. It will renumber all other frames to keep consistent naming. It will also
 create blank layers inside the new group, taking the current frame as a template.
 
+`python-fu-onion-copy-layer` and `python-fu-onion-add-frame` only work when
+frames are layer groups, not single frames.
+
 `python-fu-onion-convert-to-groups` will convert any top-level, non-background,
 bare layers into groups. This is useful after importing individual frames into
 GIMP using "File -> Open as Layers..."
+
+`python-fu-onion-enable-frame` and `python-fu-onion-disable-frame` will make
+the current frame a background layer and vice-versa. This is useful for quickly
+removing and re-adding frames from and to the onion stack.
 
 
 ## Known problems
