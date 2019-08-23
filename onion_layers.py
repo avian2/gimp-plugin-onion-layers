@@ -467,6 +467,66 @@ def onion_enable_frame(img, act_layer):
 def onion_disable_frame(img, act_layer):
 	onion_enable_disable_frame(img, act_layer, False)
 
+def onion_convert_to_groups(img, act_layer):
+	frames = list(get_frames(img))
+
+	# If no frames were found, do nothing.
+	N = len(frames)
+	if N < 1:
+		return
+
+	# We need to generate some frame names that
+	# are not used elsewhere (we'll renumber later)
+	fnum = -1
+	fname = None
+	fwidth = None
+	for frame in frames:
+		name = NumberedName.from_layer_name(frame.layer.name)
+		if name.num is not None:
+			if name.num > fnum:
+				fnum = name.num
+			if fname is None:
+				fname = name.name
+			if fwidth is None:
+				fwidth = name.width
+	fnum += 1
+
+	# Some sane defaults if none were found
+	if fname is None:
+		fname = 'frame'
+		fwidth = 4
+
+	lname = 'imported'
+
+	img.undo_group_start()
+
+	has_new_frames = False
+	for n, frame in enumerate(frames):
+		# If the frame is layer and not a group,
+		# create a new group and put it in.
+		if not hasattr(frame.layer, 'layers'):
+			new_frame = pdb.gimp_layer_group_new(img)
+
+			name = NumberedName(fname, fnum, fwidth)
+			new_frame.name = name.to_string()
+
+			pdb.gimp_image_insert_layer(img, new_frame, None, n)
+
+			pdb.gimp_image_reorder_item(img, frame.layer, new_frame, 0)
+
+			name = NumberedName(lname, fnum, fwidth)
+			frame.layer.name = name.to_string()
+
+			has_new_frames = True
+			fnum += 1
+
+	# Renumber frames if any new ones have been added
+	if has_new_frames:
+		renumber_frames(img)
+
+	img.undo_group_end()
+
+
 def start():
 	register(
 		"python_fu_onion_up",
@@ -663,6 +723,18 @@ def start():
 		[],
 		onion_disable_frame)
 
+	register(
+		"python_fu_onion_convert_to_groups",
+		"Convert bare layers into groups",
+		"Puts each layer on the top level into its own layer group.",
+		"Tomaz Solc",
+		"GPLv3+",
+		"2018",
+		"<Image>/Filters/Animation/Onion layers/Convert to groups",
+		"*",
+		[],
+		[],
+		onion_convert_to_groups)
 
 	main()
 

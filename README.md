@@ -61,7 +61,7 @@ into GIMP).
 If you have background layers that are common to all frames, you can put
 [brackets] around their names and they will be ignored by this plug-in. This is
 consistent with how the [Export
-Layers](https://github.com/khalim19/gimp-plugin-export-layers) handles
+Layers](https://github.com/khalim19/gimp-plugin-export-layers) used to handle
 background layers.
 
 ![](figures/layers.png)
@@ -131,6 +131,10 @@ all frames as well as quickly show or hide a layer in all frames.
 `python-fu-onion-add-frame` will add a new frame above the currently active
 one. It will renumber all other frames to keep consistent naming. It will also
 create blank layers inside the new group, taking the current frame as a template.
+
+`python-fu-onion-convert-to-groups` will convert any top-level, non-background,
+bare layers into groups. This is useful after importing individual frames into
+GIMP using "File -> Open as Layers..."
 
 
 ## Known problems
