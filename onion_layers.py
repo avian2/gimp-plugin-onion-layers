@@ -207,7 +207,18 @@ def onion_unsafe(img, act_layer, inc, context=None, dryrun=False, do_tint=False)
 			k = (i + c) % N
 
 			if frames[k].layer.visible:
-				context[j] = frames[k].layer.opacity
+				opacity = frames[k].layer.opacity
+				# Since we're detecting the current frame
+				# based on 100% opacity, it doesn't make
+				# sense that any context frames would have
+				# 100% opacity as well.
+				#
+				# This typically happens when you do
+				# "up-ctx-auto" after "show-all"
+				if (c != 0) and (opacity >= 99.):
+					opacity = 99.
+
+				context[j] = opacity
 
 	if not dryrun:
 		# Select the next or previous frame.
