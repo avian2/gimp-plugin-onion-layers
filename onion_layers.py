@@ -119,29 +119,45 @@ def get_frames(img):
 		yield Frame(layer)
 
 class NumberedName(object):
-	def __init__(self, name):
+	def __init__(self, name, num=None, width=None, is_mask=False):
+		self.name = name
+		self.num = num
+		self.width = width
+		self.is_mask = is_mask
+
+	@classmethod
+	def from_layer_name(cls, name):
 		# if layer mask is active when a function is invoked,
 		# the active layer name has " mask" appended.
 		name_nomask = re.sub(r' mask$', '', name)
 
-		self.is_mask = (name_nomask != name)
+		is_mask = (name_nomask != name)
 
 		g = re.search(r'(\d+)$', name_nomask)
 		if g:
-			self.num = int(g.group(1))
-			self.width = len(g.group(1))
+			num = int(g.group(1))
+			width = len(g.group(1))
 		else:
-			self.num = None
-			self.width = None
+			num = None
+			width = None
 
-		self.name = re.sub(r'\d+$', '', name_nomask)
+		name_nonum = re.sub(r'\d+$', '', name_nomask)
+
+		return cls(name_nonum, num, width, is_mask)
 
 	def to_string(self):
-		fmt = "%s%0" + str(self.width) + "d"
-		return fmt % (self.name, self.num)
+		if self.num is None:
+			return self.name
+		else:
+			fmt = "%s%0" + str(self.width) + "d"
+			return fmt % (self.name, self.num)
+
+	def __repr__(self):
+		return "NumberedName(name=%r, num=%r, width=%r, is_mask=%r)" % (
+				self.name, self.num, self.width, self.is_mask)
 
 def sanitize_name(name):
-	return NumberedName(name).name
+	return NumberedName.from_layer_name(name).name
 
 def show_all(img, act_layer):
 	img.undo_group_start()
@@ -347,7 +363,7 @@ def renumber_frames(img):
 	frames = list(get_frames(img))
 
 	def update_layer_name(layer, num, temp):
-		nn = NumberedName(layer.name)
+		nn = NumberedName.from_layer_name(layer.name)
 
 		if nn.num is not None:
 			if temp:
@@ -396,7 +412,7 @@ def onion_add_frame(img, act_layer):
 
 	n = pdb.gimp_image_get_item_position(img, act_frame)
 
-	act_name = NumberedName(act_frame.name)
+	act_name = NumberedName.from_layer_name(act_frame.name)
 	act_name.num = 99
 
 	img.undo_group_start()
@@ -410,7 +426,7 @@ def onion_add_frame(img, act_layer):
 	pdb.gimp_image_insert_layer(img, new_frame, None, n)
 
 	for n, layer in enumerate(act_frame.layers):
-		name = NumberedName(layer.name)
+		name = NumberedName.from_layer_name(layer.name)
 
 		if name.num is None:
 			continue
