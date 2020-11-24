@@ -462,6 +462,11 @@ def onion_add_frame(img, act_layer):
 	if not hasattr(act_frame, 'layers'):
 		return
 
+	# Refuse to do anything if the currently active layer
+	# is not visible.
+	if frames[contextobj.current_index].layer != act_frame:
+		return
+
 	# We need to get item position from gimp in addition to
 	# contextobj.current_index - there might be [background]
 	# layers somewhere in between, so these two numbers might
