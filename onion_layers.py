@@ -416,6 +416,8 @@ def renumber_frames(img):
 
 	def update_layer_name(layer, num, temp):
 		nn = NumberedName.from_layer_name(layer.name)
+		if nn.width < 4:
+			nn.width = 4
 
 		if nn.num is not None:
 			if temp:
