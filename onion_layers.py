@@ -145,6 +145,14 @@ class NumberedName(object):
 
 		return cls(name_nonum, num, width, is_mask)
 
+	def get_new_frame_increment(self):
+		if self.width >= 4:
+			return 100
+		elif self.width == 3:
+			return 10
+		else:
+			return 1
+
 	def to_string(self):
 		if self.num is None:
 			return self.name
@@ -208,6 +216,13 @@ class Context(object):
 				context[j] = opacity
 
 		return cls(context, i)
+
+def get_middle_number(a, b):
+	c = (a + b) // 2
+	if c == a or c == b:
+		raise ValueError
+	else:
+		return c
 
 def sanitize_name(name):
 	return NumberedName.from_layer_name(name).name
@@ -447,10 +462,29 @@ def onion_add_frame(img, act_layer):
 	if not hasattr(act_frame, 'layers'):
 		return
 
+	# We need to get item position from gimp in addition to
+	# contextobj.visible_index - there might be [background]
+	# layers somewhere in between, so these two numbers might
+	# not be equal.
 	n = pdb.gimp_image_get_item_position(img, act_frame)
 
-	new_frame_name = get_last_numbered_name(frames)
-	new_frame_name.num += 1
+	# Get a name for the new frame - start with the name
+	# of the current frame.
+	new_frame_name = NumberedName.from_layer_name(act_frame.name)
+
+	if contextobj.visible_index <= 0:
+		# Currently selected frame is the last frame
+		new_frame_name.num += new_frame_name.get_new_frame_increment()
+	else:
+		frame_after = frames[contextobj.visible_index-1]
+		try:
+			new_frame_name.num = get_middle_number(
+					new_frame_name.num,
+					NumberedName.from_layer_name(frame_after.layer.name).num
+			)
+		except ValueError:
+			# There's no space left...
+			return
 
 	img.undo_group_start()
 
@@ -473,8 +507,6 @@ def onion_add_frame(img, act_layer):
 				name.to_string(), layer.opacity, 0)
 
 		pdb.gimp_image_insert_layer(img, new_layer, new_frame, n)
-
-	renumber_frames(img)
 
 	# quick dirty check if tinting was used
 	do_tint = (pdb.gimp_image_get_layer_by_name(img, "onion-tint-after") is not None)

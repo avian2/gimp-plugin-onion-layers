@@ -1,6 +1,6 @@
 import unittest
 
-from onion_layers import NumberedName, flocked
+from onion_layers import NumberedName, flocked, get_middle_number
 
 class TestNumberedName(unittest.TestCase):
 	def test_parse(self):
@@ -28,6 +28,37 @@ class TestNumberedName(unittest.TestCase):
 		s = nn.to_string()
 
 		self.assertEqual(s, "foo")
+
+class TestGetMiddleNumber(unittest.TestCase):
+	def test_basic(self):
+		self.assertEqual(50, get_middle_number(0, 100))
+		self.assertEqual(150, get_middle_number(100, 200))
+
+		self.assertEqual(25, get_middle_number(0, 50))
+		self.assertEqual(12, get_middle_number(0, 25))
+		self.assertEqual(6, get_middle_number(0, 12))
+		self.assertEqual(3, get_middle_number(0, 6))
+		self.assertEqual(1, get_middle_number(0, 3))
+
+		self.assertEqual(1, get_middle_number(0, 2))
+		self.assertEqual(2, get_middle_number(1, 3))
+		self.assertEqual(3, get_middle_number(2, 4))
+
+		with self.assertRaises(ValueError):
+			get_middle_number(0, 1)
+
+		with self.assertRaises(ValueError):
+			get_middle_number(1, 2)
+
+		with self.assertRaises(ValueError):
+			get_middle_number(2, 3)
+
+		with self.assertRaises(ValueError):
+			get_middle_number(1, 1)
+
+	def test_one(self):
+		for n in range(100):
+			self.assertEqual(n+1, get_middle_number(n, n+2))
 
 
 class TestFlocked(unittest.TestCase):
