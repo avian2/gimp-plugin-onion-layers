@@ -156,6 +156,59 @@ class NumberedName(object):
 		return "NumberedName(name=%r, num=%r, width=%r, is_mask=%r)" % (
 				self.name, self.num, self.width, self.is_mask)
 
+class Context(object):
+	SIZE = 1
+
+	# context is an array of size (SIZE*2 + 1) that
+	# stores opacity of SIZE frames in front of the
+	# current frame and SIZE frames in back.
+	#
+	# visible index is the index of the current frame.
+	def __init__(self, context, visible_index):
+		self.context = context
+		self.visible_index = visible_index
+
+	@classmethod
+	def from_frames(cls, frames):
+		N = len(frames)
+		assert N > 0
+
+		# Find the currently visible frame.
+		i = None
+		for j, frame in enumerate(frames):
+			if frame.layer.visible and (frame.layer.opacity == 100.):
+				i = j
+
+		# If no visible frame was found, show first frame.
+		if i is None:
+			i = 0
+
+		# Find which neighboring frames are also currently visible -
+		# this is our desired context.
+
+		context = [ None ] * (cls.SIZE*2 + 1)
+		for c in range(-cls.SIZE, cls.SIZE + 1):
+			# index into context
+			j = c + cls.SIZE
+			# frame
+			k = (i + c) % N
+
+			if frames[k].layer.visible:
+				opacity = frames[k].layer.opacity
+				# Since we're detecting the current frame
+				# based on 100% opacity, it doesn't make
+				# sense that any context frames would have
+				# 100% opacity as well.
+				#
+				# This typically happens when you do
+				# "up-ctx-auto" after "show-all"
+				if (c != 0) and (opacity >= 99.):
+					opacity = 99.
+
+				context[j] = opacity
+
+		return cls(context, i)
+
 def sanitize_name(name):
 	return NumberedName.from_layer_name(name).name
 
@@ -174,7 +227,7 @@ def onion(*args, **kwargs):
 	with flocked():
 		return onion_unsafe(*args, **kwargs)
 
-def onion_unsafe(img, act_layer, inc, context=None, dryrun=False, do_tint=False):
+def onion_unsafe(img, act_layer, inc, contextobj=None, dryrun=False, do_tint=False):
 
 	# Frames are either top-level layers or layer groups.
 	frames = list(get_frames(img))
@@ -184,45 +237,16 @@ def onion_unsafe(img, act_layer, inc, context=None, dryrun=False, do_tint=False)
 	if N < 1:
 		return
 
-	# Find the currently visible frame.
-	i = None
-	for j, frame in enumerate(frames):
-		if frame.layer.visible and (frame.layer.opacity == 100.):
-			i = j
-
-	# If no visible frame was found, show first frame.
-	if i is None:
-		i = 0
-
-	CONTEXT_SIZE = 1
-	if context is None:
-		# Find which neighboring frames are also currently visible -
-		# this is our desired context.
-
-		context = [ None ] * (CONTEXT_SIZE*2 + 1)
-		for c in range(-CONTEXT_SIZE, CONTEXT_SIZE + 1):
-			# index into context
-			j = c + CONTEXT_SIZE
-			# frame
-			k = (i + c) % N
-
-			if frames[k].layer.visible:
-				opacity = frames[k].layer.opacity
-				# Since we're detecting the current frame
-				# based on 100% opacity, it doesn't make
-				# sense that any context frames would have
-				# 100% opacity as well.
-				#
-				# This typically happens when you do
-				# "up-ctx-auto" after "show-all"
-				if (c != 0) and (opacity >= 99.):
-					opacity = 99.
-
-				context[j] = opacity
+	if contextobj is None:
+		contextobj = Context.from_frames(frames)
 
 	if not dryrun:
+		context = contextobj.context
+		i = contextobj.visible_index
+
 		# Select the next or previous frame.
 		i = (i + inc) % N
+		contextobj.visible_index = i
 
 		# Change visibility of frames.
 		for frame in frames:
@@ -272,7 +296,7 @@ def onion_unsafe(img, act_layer, inc, context=None, dryrun=False, do_tint=False)
 		else:
 			img.active_layer = frames[i].layer
 
-	return context
+	return contextobj
 
 def onion_up(img, layer):
 	onion(img, layer, -1, [100.])
@@ -300,16 +324,18 @@ def onion_down_ctx_auto_tint(img, layer):
 
 def cycle_context(img, layer, do_tint=False):
 
-	context = onion(img, layer, 0, dryrun=True)
+	contextobj = onion(img, layer, 0, dryrun=True)
 
 	try:
-		current_default = DEFAULT_CONTEXTS.index(context)
+		current_default = DEFAULT_CONTEXTS.index(contextobj.context)
 	except ValueError:
 		current_default = -1
 
 	current_default = (current_default + 1) % len(DEFAULT_CONTEXTS)
 
-	onion(img, layer, 0, DEFAULT_CONTEXTS[current_default], do_tint=do_tint)
+	contextobj.context = DEFAULT_CONTEXTS[current_default]
+
+	onion(img, layer, 0, contextobj, do_tint=do_tint)
 
 def onion_cycle_context(img, layer):
 	cycle_context(img, layer, do_tint=False)
@@ -405,7 +431,7 @@ def onion_add_frame(img, act_layer):
 	frames = list(get_frames(img))
 
 	# remember current frame context
-	context = onion(img, act_layer, 0, dryrun=True)
+	contextobj = onion(img, act_layer, 0, dryrun=True)
 
 	# If no frames were found, do nothing.
 	N = len(frames)
@@ -453,7 +479,7 @@ def onion_add_frame(img, act_layer):
 	# quick dirty check if tinting was used
 	do_tint = (pdb.gimp_image_get_layer_by_name(img, "onion-tint-after") is not None)
 
-	onion(img, act_layer, 0, context, do_tint=do_tint)
+	onion(img, act_layer, 0, contextobj, do_tint=do_tint)
 
 	img.undo_group_end()
 
