@@ -172,9 +172,9 @@ class Context(object):
 	# current frame and SIZE frames in back.
 	#
 	# visible index is the index of the current frame.
-	def __init__(self, context, visible_index):
+	def __init__(self, context, current_index):
 		self.context = context
-		self.visible_index = visible_index
+		self.current_index = current_index
 
 	@classmethod
 	def from_frames(cls, frames):
@@ -257,11 +257,11 @@ def onion_unsafe(img, act_layer, inc, contextobj=None, dryrun=False, do_tint=Fal
 
 	if not dryrun:
 		context = contextobj.context
-		i = contextobj.visible_index
+		i = contextobj.current_index
 
 		# Select the next or previous frame.
 		i = (i + inc) % N
-		contextobj.visible_index = i
+		contextobj.current_index = i
 
 		# Change visibility of frames.
 		for frame in frames:
@@ -463,7 +463,7 @@ def onion_add_frame(img, act_layer):
 		return
 
 	# We need to get item position from gimp in addition to
-	# contextobj.visible_index - there might be [background]
+	# contextobj.current_index - there might be [background]
 	# layers somewhere in between, so these two numbers might
 	# not be equal.
 	n = pdb.gimp_image_get_item_position(img, act_frame)
@@ -472,11 +472,11 @@ def onion_add_frame(img, act_layer):
 	# of the current frame.
 	new_frame_name = NumberedName.from_layer_name(act_frame.name)
 
-	if contextobj.visible_index <= 0:
+	if contextobj.current_index <= 0:
 		# Currently selected frame is the last frame
 		new_frame_name.num += new_frame_name.get_new_frame_increment()
 	else:
-		frame_after = frames[contextobj.visible_index-1]
+		frame_after = frames[contextobj.current_index-1]
 		try:
 			new_frame_name.num = get_middle_number(
 					new_frame_name.num,
