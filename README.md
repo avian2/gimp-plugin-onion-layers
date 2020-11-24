@@ -53,16 +53,35 @@ keys to assign to them:
 
 The plug-in assumes that each top-level layer or layer group represents one
 animation frame. You should have layers named consistently: top-level groups
-named "frame01", "frame02", etc. and then layers inside named using the same
-pattern, like in the following example. The layer on top of the stack is the
-*last* layer (same ordering is used for animated GIF functions that are built
-into GIMP).
+named "frame0000", "frame0100", etc. and then layers inside named using the same
+pattern.
+
+The layer on top of the stack is the *last* layer (same ordering is used for
+animated GIF functions that are built into GIMP). Hence frame numbers are
+typically shown in falling order in GIMP's Layers dialog.
 
 If you have background layers that are common to all frames, you can put
 [brackets] around their names and they will be ignored by this plug-in. This is
 consistent with how the [Export
 Layers](https://github.com/khalim19/gimp-plugin-export-layers) used to handle
 background layers.
+
+A good start is the setup shown below:
+
+![](figures/starting-layers.png)
+
+"[bg]" contains the background, "frame0000" is the layer group representing
+the first frame of the animation and "sketch0000" is the first layer in that
+frame. Draw something on "sketch0000" and then add a new frame by presssing "C"
+(`python-fu-onion-add-frame`). This should add "frame0100" and "sketch0100".
+
+By numbering frames with 100, 200, 300, ... instead of 1, 2, 3, ... you can
+later insert inbetween frames without renaming all your key frames. This might
+help you if you've already inserted your keyframes into some video editing
+software.
+
+A file with more layers per frame may look like this. Each frame has an
+outline, a shading and a color layer:
 
 ![](figures/layers.png)
 
@@ -126,9 +145,14 @@ If a layer with such a name already exists in a frame, it will only copy over
 opacity and visibility. Hence this function is useful both to add a layer to
 all frames as well as quickly show or hide a layer in all frames.
 
-`python-fu-onion-add-frame` will add a new frame above the currently active
-one. It will renumber all other frames to keep consistent naming. It will also
-create blank layers inside the new group, taking the current frame as a template.
+`python-fu-onion-add-frame` will add a new frame above (i.e. appearing after)
+the currently active one. The new frame will have a number between the two
+existing frames. It will also create blank layers inside the new group, taking
+the current frame as a template.
+
+If there is no space for a new number (i.e. frames already have consecutive
+numbers) it will refuse to do anything. You can renumber frames using
+`python-fu-onion-renumber-frames` to fix this.
 
 `python-fu-onion-copy-layer` and `python-fu-onion-add-frame` only work when
 frames are layer groups, not single frames.
@@ -141,6 +165,8 @@ GIMP using "File -> Open as Layers..."
 the current frame a background layer and vice-versa. This is useful for quickly
 removing and re-adding frames from and to the onion stack.
 
+`python-fu-onion-renumber-frames` will renumber all your layers. Use this if
+you've run out of numbers for inbetweens.
 
 ## Known problems
 
