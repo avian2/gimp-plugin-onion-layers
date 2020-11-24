@@ -422,7 +422,7 @@ def renumber_frames(img):
 				nn.name = "temp-" + nn.name
 			else:
 				nn.name = re.sub(r'^temp-', '', nn.name)
-			nn.num = num
+			nn.num = num * nn.get_new_frame_increment()
 
 			layer.name = nn.to_string()
 
@@ -596,6 +596,12 @@ def onion_convert_to_groups(img, act_layer):
 
 	img.undo_group_end()
 
+def onion_renumber_frames(img, act_layer):
+	img.undo_group_start()
+
+	renumber_frames(img)
+
+	img.undo_group_end()
 
 def start():
 	register(
@@ -806,6 +812,18 @@ def start():
 		[],
 		onion_convert_to_groups)
 
+	register(
+		"python_fu_onion_renumber_frames",
+		"Renumber all frames",
+		"Updates the numbers in the names of all layers.",
+		"Tomaz Solc",
+		"GPLv3+",
+		"2020",
+		"<Image>/Filters/Animation/Onion layers/Renumber frames",
+		"*",
+		[],
+		[],
+		onion_renumber_frames)
 	main()
 
 if __name__ == "__main__":
