@@ -66,8 +66,9 @@ consistent with how the [Export
 Layers](https://github.com/khalim19/gimp-plugin-export-layers) used to handle
 background layers.
 
-A good start is the setup shown below (you can find it in the `template.xcf`
-file included in the repository):
+A good start is the setup shown below. You can also find some useful templates
+in the `template-720p.xcf` and `template-1080p.xcf` files included in the
+repository:
 
 ![](figures/starting-layers.png)
 
