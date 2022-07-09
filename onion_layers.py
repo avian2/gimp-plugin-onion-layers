@@ -421,6 +421,9 @@ def onion_copy_layer(img, act_layer):
 
 			pdb.gimp_image_insert_layer(img, layer, frame.layer, act_loc)
 
+	# Without this, the active layer ends up the last copied layer.
+	img.active_layer = act_layer
+
 	img.undo_group_end()
 
 def renumber_frames(img):
