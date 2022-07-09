@@ -406,6 +406,19 @@ def onion_copy_layer(img, act_layer):
 			if g is not None:
 				layer.name = sanitize_name(act_layer.name) + g.group(1)
 
+			# If this frame has a tint layer, we should ignore it
+			# when adding the new layer. Otherwise, the location
+			# in the stack will be wrong.
+			for i, layer2 in enumerate(frame.layer.layers):
+				if frame.TINT_PREFIX in layer2.name:
+					tint_loc = i
+					break
+			else:
+				tint_loc = None
+
+			if (tint_loc is not None) and (act_loc >= tint_loc):
+				act_loc += 1
+
 			pdb.gimp_image_insert_layer(img, layer, frame.layer, act_loc)
 
 	img.undo_group_end()
