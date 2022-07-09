@@ -26,13 +26,17 @@ of multiple layers are also included:
 
 ## Installation
 
-To install the plug-in, copy the `onion_layers.py` file to `[your home folder]\.gimp-[GIMP version]\plug-ins`.
+To install the plug-in, copy the `onion_layers.py` file to your plug-in
+directory. This might be `[your home folder]/.gimp-[GIMP version]/plug-ins` or
+`[your home folder]/.config/GIMP/[GIMP version]/plug-ins`. Check "Edit ->
+Preferences -> Folders -> Plug-ins" if you're not sure.
 
-If you have GIMP 2.8 on Linux, running `make install` should do the right
+If you have GIMP 2.10 on Linux, running `make install` should do the right
 thing. The plug-in will likely not work on Windows as-is (patches would be welcome)
 
-The plug-in was developed for GIMP 2.8.18 and Python 2.7.13. It might also work
-with other versions - feedback regarding that is welcome.
+The plug-in was developed for GIMP 2.10.8 and Python 2.7.16. It was known to
+work on 2.8 in the past. It might also work with older or newer versions of
+GIMP - feedback regarding that is welcome.
 
 
 ## Usage
