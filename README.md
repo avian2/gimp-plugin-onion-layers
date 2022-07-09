@@ -186,7 +186,7 @@ is a limitation of the GIMP plug-in interface.
 
 ## License
 
-GIMP onion layers plug-in is Copyright (C) 2020 Tomaž Šolc tomaz.solc@tablix.org
+GIMP onion layers plug-in is Copyright (C) 2022 Tomaž Šolc tomaz.solc@tablix.org
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
