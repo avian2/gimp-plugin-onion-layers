@@ -417,9 +417,11 @@ def onion_copy_layer(img, act_layer):
 				tint_loc = None
 
 			if (tint_loc is not None) and (act_loc >= tint_loc):
-				act_loc += 1
+				act_loc_add = 1
+			else:
+				act_loc_add = 0
 
-			pdb.gimp_image_insert_layer(img, layer, frame.layer, act_loc)
+			pdb.gimp_image_insert_layer(img, layer, frame.layer, act_loc + act_loc_add)
 
 	# Without this, the active layer ends up the last copied layer.
 	img.active_layer = act_layer
